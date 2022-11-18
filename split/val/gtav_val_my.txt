@@ -1,0 +1,2 @@
+../rand_aug/00132_s1.png ../rand_aug/00132_gt.png
+../rand_aug/00132_s2.png ../rand_aug/00132_gt.png
