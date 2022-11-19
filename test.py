@@ -13,8 +13,7 @@ import yaml
 from tqdm import tqdm
 
 from dataset.dg_dataset import DG_Dataset, category_list
-from model import DeepLabV3Plus, Segformer
-from model.backbones.resnet_CkassINW import deeplab_resnet101, deeplab_resnet50
+from model import DeepLabV3Plus
 from util.utils import count_params, AverageMeter, intersectionAndUnion, init_log, color_map, colorize
 from util.dist_helper import setup_distributed
 
@@ -138,20 +137,11 @@ def main():
 
     if cfg['head'] == 'deeplabv3plus':
         model = DeepLabV3Plus(cfg)
-    elif cfg['head'] == 'segformer':
-        model = Segformer(cfg)
-    elif cfg['head'] == 'deeplab_resnet50':
-        model = deeplab_resnet50(True, args=args, multi_grid=cfg['multi_grid'],
-                                    replace_stride_with_dilation=cfg['replace_stride_with_dilation'])
-    elif cfg['head'] == 'deeplab_resnet101':
-        model = deeplab_resnet101(True, args=args, multi_grid=cfg['multi_grid'],
-                                    replace_stride_with_dilation=cfg['replace_stride_with_dilation'])
     else:
         raise NotImplementedError('Unsupported Segmentation Head {}'.format(cfg['head']))
     
     model.load_state_dict(torch.load(cfg['load_from']))
     local_rank = int(os.environ["LOCAL_RANK"])
-    # if not cfg['freeze_bn']:
     model = torch.nn.SyncBatchNorm.convert_sync_batchnorm(model)
     model.cuda(local_rank)
     model = torch.nn.parallel.DistributedDataParallel(model, device_ids=[local_rank],

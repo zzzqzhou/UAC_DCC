@@ -18,8 +18,6 @@ criterion:
   name: DCCLoss
   kwargs:
     ignore_index: 255
-con_criterion:
-  name: MSE
 seed: null
 
 # arguments for model

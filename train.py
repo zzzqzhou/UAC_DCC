@@ -8,7 +8,7 @@ import torch
 import numpy as np
 from torch import nn
 import torch.distributed as dist
-from torch.optim import SGD, AdamW
+from torch.optim import SGD
 from torch.utils.data import DataLoader
 import torch.nn.functional as F
 import yaml
@@ -18,7 +18,6 @@ from model import DeepLabV3Plus
 from util.dcc_loss import BalancedSoftmaxCE
 from util.utils import count_params, AverageMeter, intersectionAndUnion, init_log
 from util.dist_helper import setup_distributed, setup_seed
-from util.logit_adjustment import compute_adjustment
 
 parser = argparse.ArgumentParser(description='DG-Dual Consistency Semantic Segmentation')
 parser.add_argument('--config', type=str, required=True)
@@ -198,11 +197,6 @@ def main():
 
             pred = model(img)
 
-            if 'logit_adjust' in cfg:
-                logit_adjustments = compute_adjustment(cfg['logit_adjust']['tro_train'], cfg['dataset'])
-                logit_adjustments = logit_adjustments.reshape(1, logit_adjustments.shape[0], 1, 1)
-                pred = pred + logit_adjustments.to(pred.device)
-            
             ## calculate the loss
             seg_loss = criterion(pred, mask)
 
