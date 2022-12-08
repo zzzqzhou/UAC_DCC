@@ -60,19 +60,17 @@ class DeepLabV3Plus(nn.Module):
 
         self.classifier = nn.Conv2d(256, cfg['nclass'], 1, bias=True)
 
-    def forward(self, x, need_fp=False, need_mc=False):
+    def forward(self, x, need_fp=False):
         h, w = x.shape[-2:]
 
         feats = self.backbone.base_forward(x)
         c1, c4 = feats[0], feats[-1]
 
         if need_fp:
-            outs = self._decode(torch.cat((c1, nn.Dropout2d(0.5)(c1))),
-                                torch.cat((c4, nn.Dropout2d(0.5)(c4))))
-            outs = F.interpolate(outs, size=(h, w), mode="bilinear", align_corners=True)
-            out, out_fp = outs.chunk(2)
-
-            return out, out_fp
+            out = self._decode(nn.Dropout2d(0.5)(c1), nn.Dropout2d(0.5)(c4))
+            out = F.interpolate(out, size=(h, w), mode="bilinear", align_corners=True)
+            
+            return out
 
         out = self._decode(c1, c4)
         out = F.interpolate(out, size=(h, w), mode="bilinear", align_corners=True)

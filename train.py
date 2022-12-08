@@ -195,7 +195,7 @@ def main():
             img = torch.cat((img_s1, img_s2), dim=0)
             mask = torch.cat((mask, mask), dim=0)
 
-            pred = model(img)
+            pred = model(img, need_fp=True)
 
             ## calculate the loss
             seg_loss = criterion(pred, mask)
